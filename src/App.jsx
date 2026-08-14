@@ -3,7 +3,7 @@ import {
   Coins, Play, X, Check, Wallet, Clock, History as HistoryIcon,
   Send, Loader2, ShieldCheck, AlertCircle, RotateCcw, PauseCircle,
 } from 'lucide-react';
-import { MIN_TAKA, WITHDRAWALS_ENABLED } from './config.js';
+import { MIN_TAKA, WITHDRAWALS_ENABLED, MAX_CYCLE_POINTS, CYCLE_COOLDOWN_HOURS } from './config.js';
 import AD_POOL from './ads.js';
 
 // ---------------------------------------------------------------------------
@@ -74,6 +74,15 @@ function maskBkash(num) {
   return num.slice(0, 5) + '\u2022\u2022\u2022' + num.slice(-3);
 }
 function timeAgo(ts) {
+  function formatHms(ms) {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+  }
   const s = Math.floor((Date.now() - ts) / 1000);
   if (s < 60) return 'just now';
   const m = Math.floor(s / 60);
@@ -267,6 +276,8 @@ export default function PoyshaApp() {
   const [watched, setWatched] = useState([]); // [{id, sponsor, ts}]
   const [withdrawals, setWithdrawals] = useState([]);
   const [cooldowns, setCooldowns] = useState({}); // { [adId]: timestamp when watchable again }
+  const [cyclePoints, setCyclePoints] = useState(0);
+const [cycleCooldownUntil, setCycleCooldownUntil] = useState(0);
   const [now, setNow] = useState(Date.now());
   const [tab, setTab] = useState('earn');
   const [activeAd, setActiveAd] = useState(null);
@@ -287,6 +298,15 @@ export default function PoyshaApp() {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+  useEffect(() => {
+    if (cycleCooldownUntil && now >= cycleCooldownUntil) {
+      setCyclePoints(0);
+      setCycleCooldownUntil(0);
+      saveKey('cycle-points', 0);
+      saveKey('cycle-cooldown-until', 0);
+      setToast({ type: 'info', text: 'You can watch ads again!' });
+    }
+  }, [now, cycleCooldownUntil]);
 
   useEffect(() => {
     (async () => {
@@ -309,16 +329,27 @@ export default function PoyshaApp() {
       // NOTE: points/watched/withdrawals are currently keyed by localStorage only
       // (not by resolvedUser.id), so this is single-user-per-device. Once you add
       // a backend, key everything by resolvedUser.id server-side.
-      const [pts, w, wd, cd] = await Promise.all([
+      const [pts, w, wd, cd, cp, ccu] = await Promise.all([
         getOrDefault('points', 0),
         getOrDefault('watched-ads', []),
         getOrDefault('withdrawals', []),
         getOrDefault('ad-cooldowns', {}),
+        getOrDefault('cycle-points', 0),
+        getOrDefault('cycle-cooldown-until', 0),
       ]);
       setPoints(pts);
       setWatched(w);
       setWithdrawals(wd);
       setCooldowns(cd);
+      if (ccu && Date.now() >= ccu) {
+        setCyclePoints(0);
+        setCycleCooldownUntil(0);
+        saveKey('cycle-points', 0);
+        saveKey('cycle-cooldown-until', 0);
+      } else {
+        setCyclePoints(cp);
+        setCycleCooldownUntil(ccu);
+      }
       setLoading(false);
     })();
   }, []);
@@ -345,8 +376,20 @@ export default function PoyshaApp() {
       saveKey('ad-cooldowns', next);
       return next;
     });
-    setToast({ type: 'success', text: `+${POINTS_PER_AD} point verified` });
-  }, []);
+
+    const nextCycle = cyclePoints + POINTS_PER_AD;
+    setCyclePoints(nextCycle);
+    saveKey('cycle-points', nextCycle);
+
+    if (nextCycle >= MAX_CYCLE_POINTS) {
+      const until = Date.now() + CYCLE_COOLDOWN_HOURS * 60 * 60 * 1000;
+      setCycleCooldownUntil(until);
+      saveKey('cycle-cooldown-until', until);
+      setToast({ type: 'info', text: `Limit reached \u2014 back in ${CYCLE_COOLDOWN_HOURS}h` });
+    } else {
+      setToast({ type: 'success', text: `+${POINTS_PER_AD} point verified` });
+    }
+  }, [cyclePoints]);
 
   const handleWithdraw = async () => {
     setWithdrawError('');
@@ -388,11 +431,15 @@ export default function PoyshaApp() {
       saveKey('watched-ads', []),
       saveKey('withdrawals', []),
       saveKey('ad-cooldowns', {}),
+      saveKey('cycle-points', 0),
+      saveKey('cycle-cooldown-until', 0),
     ]);
     setPoints(0);
     setWatched([]);
     setWithdrawals([]);
     setCooldowns({});
+    setCyclePoints(0);
+    setCycleCooldownUntil(0);
     setToast({ type: 'info', text: 'Demo progress reset' });
   };
 
@@ -468,7 +515,20 @@ export default function PoyshaApp() {
               >
                 Watch to earn
               </div>
-              {availableAds.length === 0 ? (
+              {cycleCooldownUntil > now ? (
+                <div
+                  className="rounded-2xl border p-6 text-center flex flex-col items-center gap-2"
+                  style={{ borderColor: C.border, backgroundColor: C.surface }}
+                >
+                  <Clock size={22} style={{ color: C.amber }} />
+                  <div className="font-display text-base" style={{ color: C.text }}>
+                    Limit reached
+                  </div>
+                  <div className="text-xs" style={{ color: C.textMuted }}>
+                    You've earned {MAX_CYCLE_POINTS} points. Come back in {formatHms(cycleCooldownUntil - now)}.
+                  </div>
+                </div>
+              ) : availableAds.length === 0 ? (
                 <div
                   className="rounded-2xl border p-6 text-center"
                   style={{ borderColor: C.border, backgroundColor: C.surface }}
