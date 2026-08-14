@@ -286,6 +286,17 @@ const [cycleCooldownUntil, setCycleCooldownUntil] = useState(0);
   const [bkashNumber, setBkashNumber] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [withdrawError, setWithdrawError] = useState('');
+  // Interstitial ad — loads once when the mini app opens.
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = '//wwr.giriudog.com/?tag=035cc948';
+    script.async = true;
+    script.setAttribute('data-cfasync', 'false');
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   useEffect(() => {
     if (!toast) return;
