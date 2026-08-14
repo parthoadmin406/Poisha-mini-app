@@ -10,3 +10,8 @@ export const WITHDRAWALS_ENABLED = false;
 
 // Minimum withdrawal amount, in Taka.
 export const MIN_TAKA = 20;
+// Max points a user can earn in one streak before they must wait.
+export const MAX_CYCLE_POINTS = 160;
+
+// Hours to wait after hitting the cap before earning again.
+export const CYCLE_COOLDOWN_HOURS = 1;
