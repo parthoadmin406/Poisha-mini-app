@@ -12,11 +12,11 @@
 // within a minute or two, no extra steps needed.
 
 const AD_POOL = [
-  { id: 'ad-04', sponsor: 'Watch for 1 point #4', tagline: 'Tap to watch', hue: '#5A7D5A', url: 'https://wwpb.giriuvan.com/redirect-zone/b390f67e' },
-  { id: 'ad-03', sponsor: 'Watch for 1 point #3', tagline: 'Tap to watch', hue: '#B23A2E', url: 'https://wwpb.giriuvan.com/redirect-zone/c837d897' },
-  { id: 'ad-05', sponsor: 'Watch for 1 point #5', tagline: 'Tap to watch', hue: '#8A6BAF', url: 'https://wwpb.giriuvan.com/redirect-zone/9bda9b70' },
-  { id: 'ad-02', sponsor: 'Watch for 1 point #2', tagline: 'Tap to watch', hue: '#4C6B8A', url: 'https://wwpb.giriuvan.com/redirect-zone/55a30fbe' },
-  { id: 'ad-01', sponsor: 'Watch for 1 point #1', tagline: 'Tap to watch', hue: '#2E6F52', url: 'https://wwpb.giriuvan.com/redirect-zone/135ac394' },
+  { id: 'ad-04', sponsor: 'Watch for 1 point #4', tagline: 'Tap to watch', hue: '#5A7D5A', url: 'https://gasptournament.com/zr61dqxj?key=510863d07fc0f2f92c4788d2a977cc4e' },
+  { id: 'ad-03', sponsor: 'Watch for 1 point #3', tagline: 'Tap to watch', hue: '#B23A2E', url: 'https://gasptournament.com/u8w628qc?key=abe71ada36018e74a0db5a719d6cab8c' },
+  { id: 'ad-05', sponsor: 'Watch for 1 point #5', tagline: 'Tap to watch', hue: '#8A6BAF', url: 'https://gasptournament.com/wd8j9afpq?key=1129e4b741cc18807426039cc2959f92' },
+  { id: 'ad-02', sponsor: 'Watch for 1 point #2', tagline: 'Tap to watch', hue: '#4C6B8A', url: 'https://gasptournament.com/buvmiz4b?key=7b2d37a742f685fc7d46dbba8cb30626' },
+  { id: 'ad-01', sponsor: 'Watch for 1 point #1', tagline: 'Tap to watch', hue: '#2E6F52', url: 'https://gasptournament.com/tdb5v2ygku?key=535e64707678e5ca73ec5b38530f6e94' },
 ];
 
 export default AD_POOL;
